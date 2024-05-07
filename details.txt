@@ -1,0 +1,3 @@
+user:engineerwaqas189
+pass:EkJDaRZ2M3UxObeJ
+mongodb+srv://engineerwaqas189:EkJDaRZ2M3UxObeJ@cluster0.v7p4tty.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
