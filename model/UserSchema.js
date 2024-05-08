@@ -21,6 +21,10 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: [true, "Fullname is required"],
   },
+  opt: {
+    type: String,
+    required: false, // making feild optional
+  },
 });
 UserSchema.pre("save", async function () {
   if (!this.isModified) {
