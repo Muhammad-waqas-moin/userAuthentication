@@ -21,16 +21,14 @@ app.listen(port, () => {
   console.log(`server runnning on port:${port}`);
 });
 
-//Route
-// const userRegister = require("./Route/userRoute");
-// const userLogin = require("./Route/loginRoute");
-// const userChangePassword = require("./Route/changePasswordRoute");
-// const userForgetPassword = require("./Route/forgetPassRoute");
-
+//User Routes
 const userRoute = require("./Route/UsersRoutes");
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
 
-app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
+//OPT verify Route
+const optRoute = require("./Route/OPTRoutes");
+app.use("/api/v1", optRoute);
