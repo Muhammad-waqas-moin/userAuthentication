@@ -22,11 +22,15 @@ app.listen(port, () => {
 });
 
 //Route
-const userRegister = require("./Route/userRoute");
-const userLogin = require("./Route/loginRoute");
-const userChangePassword = require("./Route/changePasswordRoute");
-const userForgetPassword = require("./Route/forgetPassRoute");
-app.use("/api/v1", userRegister);
-app.use("/api/v1", userLogin);
-app.use("/api/v1", userChangePassword);
-app.use("/api/v1", userForgetPassword);
+// const userRegister = require("./Route/userRoute");
+// const userLogin = require("./Route/loginRoute");
+// const userChangePassword = require("./Route/changePasswordRoute");
+// const userForgetPassword = require("./Route/forgetPassRoute");
+
+const userRoute = require("./Route/UsersRoutes");
+
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
+app.use("/api/v1", userRoute);
