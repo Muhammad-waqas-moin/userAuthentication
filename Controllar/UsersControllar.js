@@ -2,6 +2,7 @@ const User = require("../model/UserSchema");
 const bcrypt = require("bcrypt");
 const OTP = require("../model/OTPSchema");
 const randomString = require("randomstring");
+const { successResponse, errorResponse } = require("../utils/helper");
 
 //create new user controllar
 // check existing user
@@ -27,24 +28,26 @@ exports.createUser = async (req, res) => {
     const { email, phoneNumber } = req.body;
     const isUser = await checkUserExistence(email, phoneNumber);
     if (isUser) {
-      console.log("User already exists");
-      return res.status(400).json({
-        status: "failed",
-        message: "User already exists",
-      });
+      return errorResponse(res, "User already exists", 400);
+      // return res.status(400).json({
+      //   status: "failed",
+      //   message: "User already exists",
+      // });
     }
     const result = await User.create(req.body);
-    return res.status(200).json({
-      status: "success",
-      message: "User created successfully",
-      data: result,
-    });
+    // return res.status(200).json({
+    //   status: "success",
+    //   message: "User created successfully",
+    //   data: result,
+    // });
+    return successResponse(res, "User created successfully", 200, result);
   } catch (err) {
     console.error("Error creating user:", err.message);
-    return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
+    return errorResponse(res, err.message, 500);
+    // return res.status(500).json({
+    //   status: "error",
+    //   message: "Internal server error",
+    // });
   }
 };
 
@@ -58,45 +61,33 @@ exports.login = async (req, res) => {
     // find user
     const isUser = await User.findOne({ email });
     if (!isUser) {
-      return res.status(404).json({
-        status: "Not Found",
-        message: "user not found",
-      });
+      return errorResponse(res, "User Not Found", 404);
     }
     // compare password
     bcrypt.compare(password, isUser.password, (err, result) => {
       if (err) {
         console.log("Camparing password error  " + err);
-        return res.status(500).json({
-          status: "failed",
-          messgae: "Internal Server Error",
-        });
+        return errorResponse(res, err.message, 500);
       }
       if (result) {
         console.log("login successful");
-        return res.status(200).json({
-          status: "success",
-          message: "Login successful",
-        });
+        return successResponse(res, "Login successful", 200, isUser);
+        // return res.status(200).json({
+        //   status: "success",
+        //   message: "Login successful",
+        // });
       } else {
         console.log("login failed");
-        return res.status(401).json({
-          status: "failed",
-          message: "incorrect password",
-        });
+        return errorResponse(res, "Incorrect Password", 401);
       }
     });
 
     // res.send("login success");
   } catch (err) {
     consol.log("error finding user", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Internal Server Error",
-    });
+    return errorResponse(res, err.message, 500);
   }
 };
-
 //////////////////////////////////////////////////
 //Forget Password
 async function saveNewOTP(email) {
@@ -117,16 +108,12 @@ async function saveNewOTP(email) {
     return await OTP.create({ email, otp, expiresAt: expiry });
   }
 }
-
 exports.forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     let isUser = await User.findOne({ email: email });
     if (!isUser) {
-      return res.status(404).json({
-        status: "failed",
-        message: "User not found",
-      });
+      return errorResponse(res, "User not found", 404);
     }
     const existingOTP = await OTP.findOne({ email: email });
     if (existingOTP) {
@@ -136,17 +123,18 @@ exports.forgetPassword = async (req, res, next) => {
     }
     let otpObj = await saveNewOTP(email);
     isUser = await User.findOne({ email: email });
-    return res.status(200).json({
-      status: "success",
-      message: "New OTP created successfully",
-      data: { user: isUser, otp: otpObj },
+    return successResponse(res, "New OTP created successfully", 200, {
+      user: isUser,
+      otp: otpObj,
     });
+    // return res.status(200).json({
+    //   status: "success",
+    //   message: "New OTP created successfully",
+    //   data: { user: isUser, otp: otpObj },
+    // });
   } catch (err) {
     console.log("Error forgetting password:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
+    return errorResponse(res, err.message, 500);
   }
 };
 
@@ -168,77 +156,22 @@ exports.changePassport = async (req, res, next) => {
     console.log("receives:", newpassword, oldpassword, email);
     const user = await checkUser(email);
     if (!user) {
-      return res.status(404).json({
-        status: "failed",
-        message: "User not found",
-      });
+      return errorResponse(res, "User not found", 404);
     }
     const passwordMatches = await bcrypt.compare(oldpassword, user.password);
     if (!passwordMatches) {
       console.log("passwprd doest not match");
-      return res
-        .status(400)
-        .json({ status: "failed", message: "Invalid old password" });
+      return errorResponse(res, "Invalid old password", 500);
     }
-    console.log("passwprd doest  match");
-    // const newHashPassowrd = await bcrypt.hash(newpassword, 10);
-    // console.log("hashpassword", newHashPassowrd);
+    console.log("password matched");
     user.password = newpassword;
     await user.save();
-    return res.status(200).json({
-      status: "success",
-      message: "Password changes successfully",
-      data: user,
-    });
+    return successResponse(res, "Password changes successfully", 200, user);
   } catch (err) {
     console.log("error changing password:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
+    return errorResponse(res, err.message, 500);
   }
 };
-
-// async function checkUser(email) {
-//   try {
-//     const user = await User.findOne({ email });
-//     return user;
-//     // if (!user) {
-//     //   return false;
-//     // }
-//     // return true;
-//   } catch (err) {
-//     console.log("error fatching user:", err);
-//     throw err;
-//   }
-// }
-// exports.changePassport = async (req, res, next) => {
-//   try {
-//     const { newPassword, email } = req.body;
-//     console.log("changePassport hit : " + newPassword);
-//     const user = await checkUser(email);
-//     if (user) {
-//       user.password = newPassword;
-//       await user.save();
-//       res.status(200).json({
-//         status: "success",
-//         data: user,
-//       });
-//     } else {
-//       console.log("user not found");
-//       return res.status(500).json({
-//         status: "failed",
-//         message: "user not found",
-//       });
-//     }
-//   } catch (err) {
-//     console.log("error changing password:", err);
-//     return res.status(500).json({
-//       status: "error",
-//       message: "Internal server error",
-//     });
-//   }
-// };
 
 /////////////////////////////////////////////////
 //get All users
@@ -246,28 +179,17 @@ exports.getAllUsers = async (req, res, next) => {
   try {
     const users = await User.find();
     if (users.length) {
-      return res.status(200).json({
-        length: users.length,
-        status: "success",
-        data: users,
-      });
+      return successResponse(
+        res,
+        "successfully get all users",
+        200,
+        users,
+        users.length
+      );
     }
-    return res.status(200).json({
-      status: "success",
-      message: "no user in database",
-      data: users,
-    });
-
-    console.log("users======>", users);
-    return res.status(200).json({
-      status: "success",
-      data: users,
-    });
+    return successResponse(res, "No User In Database", 200, users);
   } catch (err) {
     console.log("error finding All Users:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
+    return errorResponse(res, err.message, 500);
   }
 };
