@@ -2,6 +2,8 @@ const User = require("../model/UserSchema");
 const bcrypt = require("bcrypt");
 const OTP = require("../model/OTPSchema");
 const randomString = require("randomstring");
+const jwt = require("jsonwebtoken");
+
 const { successResponse, errorResponse } = require("../utils/helper");
 
 //create new user controllar
@@ -71,7 +73,13 @@ exports.login = async (req, res) => {
       }
       if (result) {
         console.log("login successful");
-        return successResponse(res, "Login successful", 200, isUser);
+        const token = jwt.sign({ id: isUser._id }, process.env.SECRATKEY, {
+          expiresIn: "1h",
+        });
+        return successResponse(res, "Login successful", 200, {
+          user: isUser,
+          token: token,
+        });
         // return res.status(200).json({
         //   status: "success",
         //   message: "Login successful",
@@ -150,7 +158,7 @@ async function checkUser(email) {
     throw err;
   }
 }
-exports.changePassport = async (req, res, next) => {
+exports.changePassword = async (req, res, next) => {
   try {
     const { newpassword, oldpassword, email } = req.body;
     console.log("receives:", newpassword, oldpassword, email);
@@ -166,7 +174,7 @@ exports.changePassport = async (req, res, next) => {
     console.log("password matched");
     user.password = newpassword;
     await user.save();
-    return successResponse(res, "Password changes successfully", 200, user);
+    return successResponse(res, "Password changed successfully", 200, user);
   } catch (err) {
     console.log("error changing password:", err);
     return errorResponse(res, err.message, 500);
@@ -190,6 +198,39 @@ exports.getAllUsers = async (req, res, next) => {
     return successResponse(res, "No User In Database", 200, users);
   } catch (err) {
     console.log("error finding All Users:", err);
+    return errorResponse(res, err.message, 500);
+  }
+};
+
+////////////////////////////////////////////////
+//get single user
+exports.getSingleUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    // console.log("id:==>", id);
+    const user = await User.findById(id);
+    console.log("user ====> ", user);
+    return successResponse(res, "successfullt get user ", 200, user);
+  } catch (err) {
+    console.log("error fatching Single User:", err);
+    return errorResponse(res, err.message, 500);
+  }
+};
+
+// Delete Single User
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    console.log("id====> ", id);
+    const deleteUSer = await User.deleteOne({ _id: id });
+    console.log("deleteUSer=====>", deleteUSer);
+    if (deleteUSer.deletedCount === 0) {
+      return errorResponse(res, "User Not Found", 404);
+    }
+    return successResponse(res, "User successfully deleted", 200);
+    // res.send("successfully deleted");
+  } catch (err) {
+    console.log("error deleting  User:", err);
     return errorResponse(res, err.message, 500);
   }
 };

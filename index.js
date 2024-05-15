@@ -24,10 +24,10 @@ app.listen(port, () => {
 //User Routes
 const userRoute = require("./Route/UsersRoutes");
 app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
-app.use("/api/v1", userRoute);
+// app.use("/api/v1", userRoute);
+// app.use("/api/v1", userRoute);
+// app.use("/api/v1", userRoute);
+// app.use("/api/v1", userRoute);
 
 //OPT verify Route
 const optRoute = require("./Route/OPTRoutes");
